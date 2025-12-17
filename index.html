@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Truss</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #0d1b2a;
+            border: 2px solid #4a4a4a;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            max-width: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: auto;
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-around;
+            background-color: #1c2541;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #3a506b;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .value-display {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 5px 0;
+        }
+
+        .green-text {
+            color: #28a745;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex-grow: 1;
+            min-height: auto;
+        }
+
+        .left-controls {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #1c2541;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3a506b;
+            min-width: 0;
+            overflow: hidden;
+            flex-grow: 1;
+            min-height: 400px;
+        }
+
+
+        .right-panel {
+            flex: 0.25;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #1c2541;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3a506b;
+            min-height: 0;
+        }
+
+        .connect-ble-button {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 10px 15px;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .connect-ble-button:hover {
+            background-color: #218838;
+        }
+
+        .connect-ble-button.disconnect {
+            background-color: #dc3545;
+        }
+
+        .connect-ble-button.disconnect:hover {
+            background-color: #c82333;
+        }
+
+        /* Settings Group Styles */
+        .settings-group {
+            background-color: #1c2541;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #3a506b;
+        }
+
+        .settings-group h3 {
+            color: #fff;
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #3a506b;
+            padding-bottom: 10px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .setting-item label {
+            color: #adb5bd;
+            font-size: 0.9em;
+            flex-basis: 120px;
+            white-space: nowrap;
+        }
+
+        .setting-item input[type="number"],
+        .setting-item select {
+            background-color: #0b132b;
+            color: #fff;
+            border: 1px solid #3a506b;
+            border-radius: 4px;
+            padding: 8px;
+            flex-grow: 1;
+            width: auto;
+            max-width: 120px;
+            min-width: 100px;
+            font-size: 1em;
+        }
+
+        .setting-item select option {
+            background-color: #0b132b;
+            color: #fff;
+        }
+
+        /* Action Buttons within settings groups */
+        .settings-group .action-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .settings-group .action-buttons button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            flex-grow: 1;
+            transition: background-color 0.2s;
+        }
+
+        .settings-group .action-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        svg {
+            background: #f8f4e8;
+            border: 1px solid #aaa;
+        }
+
+        .member {
+            stroke: #9b6a2f;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .node {
+            fill: #d0d0d0;
+            stroke: #000;
+            stroke-width: 1.5;
+        }
+
+        .force-label {
+            fill: blue;
+            font-size: 1.5rm;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        .load-label {
+            fill: black;
+            font-size: 1.5rm;
+            font-weight: bold;
+        }
+
+        /* --- Mobile-first responsive design for screens up to 768px --- */
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+                padding: 5px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+
+
+            .main-content {
+                flex-direction: column;
+            }
+
+            .left-controls,
+            .right-panel {
+                padding: 10px;
+                min-height: 0;
+            }
+
+            /* Keep label and input side-by-side on small screens */
+            .setting-item {
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            .setting-item label {
+                flex-basis: 100px;
+                min-width: 100px;
+                margin-bottom: 0;
+            }
+
+            .settings-group h3 {
+                font-size: 1.1em;
+            }
+
+            .control-button {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="main-app-container">
+        <div class="top-panel">
+            <button id="connect-ble-btn" class="connect-ble-button">Connect</button>
+        </div>
+
+        <div class="main-content">
+            <div class="left-controls">
+                <svg id="truss" width="620" height="410" viewBox="0 0 620 410" preserveAspectRatio="xMidYMid meet"
+                    style="display:block;margin:0 auto;">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M0,0 L10,5 L0,10 Z" fill="black" />
+                        </marker>
+                    </defs>
+
+                    <g id="members"></g>
+                    <g id="nodes"></g>
+                    <g id="labels"></g>
+                </svg>
+                <div class="settings-group">
+                    <div class="action-buttons">
+                        <button id="toggle-load-btn">Toggle Force</button>
+                        <button id="zero-load-btn">Zero All</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+
+                <div class="settings-group">
+                    <h3>Calibration</h3>
+                    <div class="setting-item">
+                        <label for="user-coef1">User CalbCoef Member 1</label>
+                        <input type="number" id="user-coef1" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef2">User CalbCoef Member 2</label>
+                        <input type="number" id="user-coef2" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef3">User CalbCoef Member 3</label>
+                        <input type="number" id="user-coef3" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef4">User CalbCoef Member 4</label>
+                        <input type="number" id="user-coef4" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef5">User CalbCoef Member 5</label>
+                        <input type="number" id="user-coef5" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef6">User CalbCoef Member 6</label>
+                        <input type="number" id="user-coef6" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef7">User CalbCoef Member 7</label>
+                        <input type="number" id="user-coef7" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                    <div class="setting-item">
+                        <label for="user-coef8">User CalbCoef External</label>
+                        <input type="number" id="user-coef8" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <div class="action-buttons">
+                        <button id="save-setting-button">Save to Hardware</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Tab Elements ---
+            // settingsPanel and speedPanel are not used as variables, only by ID in showTab
+            // const settingsPanel = document.getElementById('settings-panel');
+            // const speedPanel = document.getElementById('speed-panel');
+
+            // --- Connect BLE Button ---
+            const connectBleButton = document.getElementById('connect-ble-btn');
+            let rawLoad = [0, 0, 0, 0, 0, 0, 0, 0];
+            let rawLoadOffset = [0, 0, 0, 0, 0, 0, 0, 0];
+            let calbCoef = [0, 0, 0, 0, 0, 0, 0, 0];
+            let lastCalbCoef = [0, 0, 0, 0, 0, 0, 0, 0];
+            let zeroLoadFlag = true;
+            // --- Settings inputs ---
+            const calbCoefInput = [
+                document.getElementById('user-coef1'),
+                document.getElementById('user-coef2'),
+                document.getElementById('user-coef3'),
+                document.getElementById('user-coef4'),
+                document.getElementById('user-coef5'),
+                document.getElementById('user-coef6'),
+                document.getElementById('user-coef7'),
+                document.getElementById('user-coef8')];
+            // --- Speed PID inputs ---
+
+            // --- Setting Management Buttons ---
+            const saveSettingButton = document.getElementById('save-setting-button');
+
+            const DEVICE_NAME = 'Truss';
+            const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
+            const RX_CHAR_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
+            const TX_CHAR_UUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
+            //----------------------------------------------------------------------------------------------
+
+            const GET_SETTING_CMD = 0x81;
+            const SAVE_SETTING_CMD = 0x82;
+
+            let isWebBLEConnected = false;
+            let deviceSerialNo = 0;
+            let bleDevice;
+            let txCharacteristic;
+            // let time = 0; // Unused variable
+            let settingChangedFlag = false;
+
+            for (let i = 0; i < 8; i++) {
+                calbCoef[i] = parseInt(calbCoefInput[i].value * 10000);
+                lastCalbCoef[i] = calbCoef[i];
+            }
+
+            const sendBuff = new Uint8Array(24);
+            let sendLength = 0; // tracks how much of the buffer is used
+
+            // Update Settings when inputs change
+            calbCoefInput[0].addEventListener('change', () => calbCoef[0] = parseInt(calbCoefInput[0].value * 10000));
+            calbCoefInput[1].addEventListener('change', () => calbCoef[1] = parseInt(calbCoefInput[1].value * 10000));
+            calbCoefInput[2].addEventListener('change', () => calbCoef[2] = parseInt(calbCoefInput[2].value * 10000));
+            calbCoefInput[3].addEventListener('change', () => calbCoef[3] = parseInt(calbCoefInput[3].value * 10000));
+            calbCoefInput[4].addEventListener('change', () => calbCoef[4] = parseInt(calbCoefInput[4].value * 10000));
+            calbCoefInput[5].addEventListener('change', () => calbCoef[5] = parseInt(calbCoefInput[5].value * 10000));
+            calbCoefInput[6].addEventListener('change', () => calbCoef[6] = parseInt(calbCoefInput[6].value * 10000));
+            calbCoefInput[7].addEventListener('change', () => calbCoef[7] = parseInt(calbCoefInput[7].value * 10000));
+            // Update Numeric Commands when inputs change
+            //---------------------------------------------------------------------------------------------- 
+            /* ----- DATA MODEL (Delphi-like) ----- */
+
+            const nodes = {
+                A: { x: 40, y: 40 },
+                B: { x: 300, y: 40 },
+                C: { x: 300, y: 300 },
+                D: { x: 40, y: 300 },
+                E: { x: 540, y: 300 }
+            };
+
+            const members = [
+                { id: 1, from: 'B', to: 'E', force: 0.0 },
+                { id: 2, from: 'C', to: 'E', force: 0.0 },
+                { id: 3, from: 'B', to: 'C', force: 0.0 },
+                { id: 4, from: 'A', to: 'B', force: 0.0 },
+                { id: 5, from: 'A', to: 'C', force: 0.0 },
+                { id: 6, from: 'D', to: 'C', force: 0.0 },
+                { id: 7, from: 'A', to: 'D', force: 0.0 }
+            ];
+
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const memberGroup = document.getElementById('members');
+            const nodeGroup = document.getElementById('nodes');
+            const labelGroup = document.getElementById('labels');
+
+            /* ----- DRAW MEMBERS ----- */
+
+            members.forEach(m => {
+                const n1 = nodes[m.from];
+                const n2 = nodes[m.to];
+
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('x1', n1.x);
+                line.setAttribute('y1', n1.y);
+                line.setAttribute('x2', n2.x);
+                line.setAttribute('y2', n2.y);
+                line.setAttribute('class', 'member');
+                memberGroup.appendChild(line);
+
+                const tx = (n1.x + n2.x) / 2;
+                const ty = (n1.y + n2.y) / 2;
+
+                const forceText = document.createElementNS(svgNS, 'text');
+                forceText.setAttribute('x', tx);
+                forceText.setAttribute('y', ty - 10);
+                forceText.setAttribute('class', 'force-label');
+                forceText.textContent = m.force + ' N';
+                labelGroup.appendChild(forceText);
+
+                const indexText = document.createElementNS(svgNS, 'text');
+                indexText.setAttribute('x', tx);
+                indexText.setAttribute('y', ty + 14);
+                indexText.setAttribute('fill', '#000');
+                indexText.setAttribute('font-size', '12');
+                indexText.setAttribute('text-anchor', 'middle');
+                indexText.textContent = m.id;
+                labelGroup.appendChild(indexText);
+
+                m.lineEl = line;
+                m.textEl = forceText;
+                m.indexEl = indexText;
+            });
+
+            /* ----- DRAW NODES ----- */
+
+            Object.values(nodes).forEach(n => {
+                const c = document.createElementNS(svgNS, 'circle');
+                c.setAttribute('cx', n.x);
+                c.setAttribute('cy', n.y);
+                c.setAttribute('r', 8);
+                c.setAttribute('class', 'node');
+                nodeGroup.appendChild(c);
+            });
+
+            /* ----- EXTERNAL LOAD ----- */
+
+            let currentLoadNode = 'E'; // 'E' = end node, 'C' = middle node
+
+            const loadLine = document.createElementNS(svgNS, 'line');
+            loadLine.setAttribute('stroke', 'black');
+            loadLine.setAttribute('stroke-width', '3');
+            loadLine.setAttribute('marker-end', 'url(#arrow)');
+
+            const loadText = document.createElementNS(svgNS, 'text');
+            loadText.setAttribute('class', 'load-label');
+            loadText.textContent = '0.0 N';
+
+            function updateExternalLoadPosition() {
+                const n = nodes[currentLoadNode];
+
+                loadLine.setAttribute('x1', n.x);
+                loadLine.setAttribute('y1', n.y);
+                loadLine.setAttribute('x2', n.x);
+                loadLine.setAttribute('y2', n.y + 50);
+
+                loadText.setAttribute('x', n.x + -15);
+                loadText.setAttribute('y', n.y + 90);
+            }
+
+            updateExternalLoadPosition();
+
+
+            function zeroLoads() {
+                for (let i = 0; i < 8; i++) {
+                    rawLoadOffset[i] = rawLoad[i];
+                }
+            }
+
+            document.getElementById('truss').appendChild(loadLine);
+            document.getElementById('truss').appendChild(loadText);
+
+            document.getElementById('toggle-load-btn').onclick = function () {
+                currentLoadNode = (currentLoadNode === 'E') ? 'C' : 'E';
+                updateExternalLoadPosition();
+            };
+            document.getElementById('zero-load-btn').onclick = function () {
+                zeroLoadFlag = true;
+            };
+            /* ================= FORCE UPDATE API ================= */
+
+            function setMemberForce(memberId, newForce) {
+                const m = members.find(x => x.id === memberId);
+                if (!m) return;
+
+                m.force = newForce;
+                m.textEl.textContent = newForce + ' N';
+
+                updateMemberStyle(m);
+            }
+
+            function setAllForces(forceArray) {
+                forceArray.forEach((value, index) => {
+                    const m = members[index];
+                    if (!m) return;
+
+                    m.force = value;
+                    m.textEl.textContent = value + ' N';
+
+                    updateMemberStyle(m);
+                });
+            }
+
+            function updateMemberStyle(m) {
+                if (m.force >= 0) {
+                    m.lineEl.style.stroke = '#9b6a2f'; // tension
+                } else {
+                    m.lineEl.style.stroke = '#2b6cb0'; // compression
+                }
+            }
+
+            /* ===== EXAMPLE TEST (REMOVE IN PRODUCTION) ===== */
+            //setMemberForce(3, 18.6);
+            //setAllForces([0.0, 8.4, 12.6, 16.8, 21.0, 25.2, 12.5]);
+
+            //----------------------------------------------------------------------------------------------
+            async function connectToBleDevice() {
+                try {
+                    console.log('Requesting Bluetooth Device...');
+                    bleDevice = await navigator.bluetooth.requestDevice({
+                        filters: [{ name: DEVICE_NAME }],
+                        optionalServices: [SERVICE_UUID]
+                    });
+
+                    console.log('Connecting to GATT Server...');
+                    const server = await bleDevice.gatt.connect();
+
+                    console.log('Getting Service...');
+                    const service = await server.getPrimaryService(SERVICE_UUID);
+
+                    console.log('Getting RX Characteristic (for receiving data)...');
+                    const rxCharacteristic = await service.getCharacteristic(RX_CHAR_UUID);
+                    rxCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+                    await rxCharacteristic.startNotifications();
+
+                    console.log('Getting TX Characteristic (for sending data)...');
+                    txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
+
+                    console.log('✅ Connected!');
+                    bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+                    isWebBLEConnected = true;
+                    updateConnectButtonUI();
+                    sendCmd(GET_SETTING_CMD); //This Command Start Communication!
+                } catch (error) {
+                    console.error('Connection failed!', error);
+                    isWebBLEConnected = false;
+                    updateConnectButtonUI();
+                }
+            }
+            //----------------------------------------------------------------------------------------------
+
+            // 300ms
+            function handleNotifications(event) {
+                if (sendLength > 0) {
+                    try {
+                        // Send only the used portion
+                        txCharacteristic.writeValueWithoutResponse(sendBuff.subarray(0, sendLength));
+                        console.log("Sent BLE packet:", sendBuff.subarray(0, sendLength));
+                        sendLength = 0;
+                    } catch (err) {
+                        console.error("BLE send failed:", err);
+                    }
+                }
+                //-----------------------------
+                const value = event.target.value;
+                const dataView = new DataView(value.buffer);
+                //console.log(dataView.byteLength);
+                // n = 2^23 * 64 * sensitivity / 1000 = 
+                // n load cell = 2^29  * sensitivity / 1000
+                 //  load = n  * 2450 / (2^29  * 3 / 1000)
+                 //  load = n  * 10000 * 2450 / (2^29  * 30)
+                if (dataView.byteLength == 36) {
+                    const lastWord = dataView.getUint32(32, true);
+                    if ((lastWord & 0xFFFF) == 0) {
+                        for (let i = 0; i < 8; i++) {
+                            rawLoad[i] = dataView.getUint32(i * 4, true);
+                        }
+                        if (zeroLoadFlag) {
+                            zeroLoadFlag = false;
+                            zeroLoads();
+                        }
+                        for (let i = 0; i < 7; i++) {
+                            const load = (rawLoad[i] - rawLoadOffset[i]) * (calbCoef[i] * 2.281740307e-7);
+                            setMemberForce(i + 1, load.toFixed(1));
+                        }
+                        const load = (rawLoad[7] - rawLoadOffset[7]) * (calbCoef[7] * 1.521160205e-7);
+                        loadText.textContent = load.toFixed(1) + ' N';
+                    } else {
+                        for (let i = 0; i < 8; i++) {
+                            const rawSetting = dataView.getUint32(i * 4, true);
+                            calbCoef[i] = rawSetting;
+                            lastCalbCoef[i] = calbCoef[i];
+                            calbCoefInput[i].value = (calbCoef[i] * 0.0001).toFixed(4);
+                        }
+
+                        deviceSerialNo = (lastWord >> 16);
+                        connectBleButton.textContent = connectBleButton.textContent + ' from ' + deviceSerialNo;
+                    }
+                }
+            }
+            //----------------------------------------------------------------------------------------------
+            async function sendCmd(cmd) {
+                if (!isWebBLEConnected || !txCharacteristic) {
+                    console.error("Not connected or TX Characteristic not available.");
+                    return;
+                }
+                const buffer = new Uint8Array(1);
+                buffer[0] = cmd;
+                try {
+                    await txCharacteristic.writeValueWithoutResponse(buffer);
+                    console.log(`Sent command: ${cmd}`);
+                } catch (error) {
+                    console.error("Failed to send command:", error);
+                }
+            }
+            //----------------------------------------------------------------------------------------------
+            function onDisconnected() {
+                console.log('Device disconnected.');
+                isWebBLEConnected = false;
+                txCharacteristic = null;
+                updateConnectButtonUI();
+            }
+            //----------------------------------------------------------------------------------------------
+            function disconnectFromBleDevice() {
+                if (bleDevice && bleDevice.gatt.connected) {
+                    bleDevice.gatt.disconnect();
+                }
+            }
+            //----------------------------------------------------------------------------------------------
+            function updateConnectButtonUI() {
+                if (isWebBLEConnected) {
+                    connectBleButton.textContent = 'Disconnect';
+                    connectBleButton.classList.add('disconnect');
+                } else {
+                    connectBleButton.textContent = 'Connect';
+                    connectBleButton.classList.remove('disconnect');
+                }
+            }
+            //---------------------------------------------------------
+            saveSettingButton.addEventListener('click', () => {
+                let offset = 0; // start at beginning
+                for (let i = 0; i < 8; i++) {
+                    const newVal = calbCoef[i];
+                    const oldVal = lastCalbCoef[i];
+                    if (newVal !== oldVal) {
+                        settingChangedFlag = true;
+                        sendBuff[offset++] = i; // index
+                        sendBuff[offset++] = (newVal >> 8); // high byte
+                        sendBuff[offset++] = newVal & 0xFF; // low byte                        
+                        lastCalbCoef[i] = newVal;
+                    }
+                }
+                sendLength = offset; // total bytes to send
+                if (settingChangedFlag) {
+                    sendBuff[sendLength++] = SAVE_SETTING_CMD;
+                    settingChangedFlag = false;
+                }
+            });
+            //----------------------------------------------------------------------------------------------
+            connectBleButton.addEventListener('click', async () => {
+                if (isWebBLEConnected) {
+                    disconnectFromBleDevice();
+                } else {
+                    await connectToBleDevice();
+                }
+            });
+            //----------------------------------------------------------------------------------------------
+            updateConnectButtonUI();
+        });
+    </script>
+</body>
+
+</html>

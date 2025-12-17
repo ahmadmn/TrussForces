@@ -190,8 +190,8 @@
         }
 
         svg {
-            background: #f8f4e8;
-            border: 1px solid #aaa;
+            background: #1c2541;
+            border: 1px solid #3a506b;
         }
 
         .member {
@@ -201,20 +201,20 @@
         }
 
         .node {
-            fill: #d0d0d0;
-            stroke: #000;
+            fill: #a0a0a0;
+            stroke: white;
             stroke-width: 1.5;
         }
 
         .force-label {
-            fill: blue;
+            fill: cyan;
             font-size: 1.5rm;
             font-weight: bold;
             text-anchor: middle;
         }
 
         .load-label {
-            fill: black;
+            fill: cyan;
             font-size: 1.5rm;
             font-weight: bold;
         }
@@ -447,16 +447,16 @@
                 const ty = (n1.y + n2.y) / 2;
 
                 const forceText = document.createElementNS(svgNS, 'text');
-                forceText.setAttribute('x', tx);
-                forceText.setAttribute('y', ty - 10);
+                forceText.setAttribute('x', tx + 0);
+                forceText.setAttribute('y', ty - 6);
                 forceText.setAttribute('class', 'force-label');
                 forceText.textContent = m.force + ' N';
                 labelGroup.appendChild(forceText);
 
                 const indexText = document.createElementNS(svgNS, 'text');
                 indexText.setAttribute('x', tx);
-                indexText.setAttribute('y', ty + 14);
-                indexText.setAttribute('fill', '#000');
+                indexText.setAttribute('y', ty + 15);
+                indexText.setAttribute('fill', 'yellow');
                 indexText.setAttribute('font-size', '12');
                 indexText.setAttribute('text-anchor', 'middle');
                 indexText.textContent = m.id;
@@ -714,6 +714,5 @@
         });
     </script>
 </body>
-
 
 </html>

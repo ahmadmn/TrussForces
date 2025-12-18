@@ -17,6 +17,8 @@
             min-height: 100vh;
             padding: 10px;
             box-sizing: border-box;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll when menu is off-screen */
         }
 
         .container {
@@ -34,7 +36,9 @@
 
         .top-panel {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
+            /* Changed to space-between for button placement */
+            align-items: center;
             background-color: #1c2541;
             padding: 10px;
             border-radius: 8px;
@@ -44,27 +48,19 @@
             gap: 10px;
         }
 
-        .value-display {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #ffffff;
-            padding: 5px 0;
-        }
-
-        .green-text {
-            color: #28a745;
-        }
-
         .main-content {
             display: flex;
             flex-direction: row;
             gap: 10px;
             flex-grow: 1;
             min-height: auto;
+            position: relative;
+            /* Context for absolute positioning if needed */
         }
 
         .left-controls {
-            flex: 3;
+            flex: 1;
+            /* Take all available space now that right panel is fixed */
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -78,26 +74,88 @@
             min-height: 400px;
         }
 
-
+        /* --- Slide Menu Styles --- */
         .right-panel {
-            flex: 0.25;
+            position: fixed;
+            top: 0;
+            right: -320px;
+            /* Hidden off-screen initially */
+            width: 300px;
+            height: 100vh;
+            background-color: #1c2541;
+            border-left: 1px solid #3a506b;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background-color: #1c2541;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #3a506b;
-            min-height: 0;
+            overflow-y: auto;
+            /* Scroll if content is too tall */
         }
 
-        .connect-ble-button {
-            background-color: #28a745;
+        .right-panel.open {
+            right: 0;
+            /* Slide in */
+        }
+
+        /* Overlay to dim background when menu is open */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-menu-btn {
+            align-self: flex-end;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .toggle-menu-btn {
+            background-color: #3a506b;
             color: white;
-            font-weight: bold;
-            font-size: 1.1em;
+            border: none;
             padding: 10px 15px;
-            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toggle-menu-btn:hover {
+            background-color: #4a6fa5;
+        }
+
+        /* ----------------------- */
+
+        .connect-ble-button {
+            background-color: #007bff;
+            color: white;
+            flex-grow: 1;
+            font-size: 1.0em;
+            padding: 10px 15px;
+            /* width: 100%; removed fixed width to fit in flex header */
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -118,7 +176,8 @@
 
         /* Settings Group Styles */
         .settings-group {
-            background-color: #1c2541;
+            background-color: #151b2e;
+            /* Slightly darker inside panel for contrast */
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #3a506b;
@@ -170,7 +229,6 @@
             display: flex;
             justify-content: space-around;
             gap: 10px;
-            margin-top: 10px;
         }
 
         .settings-group .action-buttons button {
@@ -208,14 +266,14 @@
 
         .force-label {
             fill: cyan;
-            font-size: 1.5rm;
+            font-size: 1.1em;
             font-weight: bold;
             text-anchor: middle;
         }
 
         .load-label {
             fill: cyan;
-            font-size: 1.5rm;
+            font-size: 1.1em;
             font-weight: bold;
         }
 
@@ -230,13 +288,11 @@
                 padding: 5px;
             }
 
-
             .main-content {
                 flex-direction: column;
             }
 
-            .left-controls,
-            .right-panel {
+            .left-controls {
                 padding: 10px;
                 min-height: 0;
             }
@@ -258,27 +314,36 @@
                 font-size: 1.1em;
             }
 
-            .control-button {
-                width: 60px;
-                height: 60px;
+            /* On mobile, slide menu can take almost full width */
+            .right-panel {
+                width: 85vw;
+                right: -90vw;
             }
         }
     </style>
 </head>
 
 <body>
+    <!-- Overlay for slide menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+
     <div class="container" id="main-app-container">
         <div class="top-panel">
             <button id="connect-ble-btn" class="connect-ble-button">Connect</button>
+            <button id="toggle-load-btn" class="connect-ble-button">Toggle Force</button>
+            <button id="zero-load-btn" class="connect-ble-button">Zero All</button>
+            <button id="toggle-menu-btn" class="toggle-menu-btn">
+                <span>&#9776;</span> Settings
+            </button>
         </div>
 
         <div class="main-content">
             <div class="left-controls">
-                <svg id="truss" width="620" height="410" viewBox="0 0 620 410" preserveAspectRatio="xMidYMid meet"
-                    style="display:block;margin:0 auto;">
+                <svg id="truss" width="700" height="335" viewBox="0 0 700 335" preserveAspectRatio="xMidYMid meet"
+                    style="display:block;margin:0 auto; width: 100%; height: auto;">
                     <defs>
                         <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-                            <path d="M0,0 L10,5 L0,10 Z" fill="black" />
+                            <path d="M0,0 L10,5 L0,10 Z" fill="gray" />
                         </marker>
                     </defs>
 
@@ -286,48 +351,43 @@
                     <g id="nodes"></g>
                     <g id="labels"></g>
                 </svg>
-                <div class="settings-group">
-                    <div class="action-buttons">
-                        <button id="toggle-load-btn">Toggle Force</button>
-                        <button id="zero-load-btn">Zero All</button>
-                    </div>
-                </div>
             </div>
 
-            <div class="right-panel">
+            <div class="right-panel" id="side-menu">
+                <button class="close-menu-btn" id="close-menu-btn">&times;</button>
 
                 <div class="settings-group">
                     <h3>Calibration</h3>
                     <div class="setting-item">
-                        <label for="user-coef1">User CalbCoef Member 1</label>
+                        <label for="user-coef1">User CalbCoef 1</label>
                         <input type="number" id="user-coef1" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef2">User CalbCoef Member 2</label>
+                        <label for="user-coef2">User CalbCoef 2</label>
                         <input type="number" id="user-coef2" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef3">User CalbCoef Member 3</label>
+                        <label for="user-coef3">User CalbCoef 3</label>
                         <input type="number" id="user-coef3" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef4">User CalbCoef Member 4</label>
+                        <label for="user-coef4">User CalbCoef 4</label>
                         <input type="number" id="user-coef4" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef5">User CalbCoef Member 5</label>
+                        <label for="user-coef5">User CalbCoef 5</label>
                         <input type="number" id="user-coef5" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef6">User CalbCoef Member 6</label>
+                        <label for="user-coef6">User CalbCoef 6</label>
                         <input type="number" id="user-coef6" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef7">User CalbCoef Member 7</label>
+                        <label for="user-coef7">User CalbCoef 7</label>
                         <input type="number" id="user-coef7" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                     <div class="setting-item">
-                        <label for="user-coef8">User CalbCoef External</label>
+                        <label for="user-coef8">User CalbCoef E</label>
                         <input type="number" id="user-coef8" value="1.0000" step="0.0001" min="0.1000" max="4.9999">
                     </div>
                 </div>
@@ -342,10 +402,25 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Tab Elements ---
-            // settingsPanel and speedPanel are not used as variables, only by ID in showTab
-            // const settingsPanel = document.getElementById('settings-panel');
-            // const speedPanel = document.getElementById('speed-panel');
+            // --- Slide Menu Logic ---
+            const sideMenu = document.getElementById('side-menu');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const toggleMenuBtn = document.getElementById('toggle-menu-btn');
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+
+            function openMenu() {
+                sideMenu.classList.add('open');
+                menuOverlay.classList.add('active');
+            }
+
+            function closeMenu() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            }
+
+            toggleMenuBtn.addEventListener('click', openMenu);
+            closeMenuBtn.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
 
             // --- Connect BLE Button ---
             const connectBleButton = document.getElementById('connect-ble-btn');
@@ -407,11 +482,11 @@
             /* ----- DATA MODEL (Delphi-like) ----- */
 
             const nodes = {
-                A: { x: 40, y: 40 },
-                B: { x: 300, y: 40 },
-                C: { x: 300, y: 300 },
-                D: { x: 40, y: 300 },
-                E: { x: 540, y: 300 }
+                A: { x: 100, y: 20 },
+                B: { x: 330, y: 20 },
+                C: { x: 330, y: 250 },
+                D: { x: 100, y: 250 },
+                E: { x: 560, y: 250 }
             };
 
             const members = [
@@ -448,14 +523,14 @@
 
                 const forceText = document.createElementNS(svgNS, 'text');
                 forceText.setAttribute('x', tx + 0);
-                forceText.setAttribute('y', ty - 6);
+                forceText.setAttribute('y', ty + 25);
                 forceText.setAttribute('class', 'force-label');
                 forceText.textContent = m.force + ' N';
                 labelGroup.appendChild(forceText);
 
                 const indexText = document.createElementNS(svgNS, 'text');
                 indexText.setAttribute('x', tx);
-                indexText.setAttribute('y', ty + 15);
+                indexText.setAttribute('y', ty + 4);
                 indexText.setAttribute('fill', 'yellow');
                 indexText.setAttribute('font-size', '12');
                 indexText.setAttribute('text-anchor', 'middle');
@@ -483,7 +558,7 @@
             let currentLoadNode = 'E'; // 'E' = end node, 'C' = middle node
 
             const loadLine = document.createElementNS(svgNS, 'line');
-            loadLine.setAttribute('stroke', 'black');
+            loadLine.setAttribute('stroke', 'gray');
             loadLine.setAttribute('stroke-width', '3');
             loadLine.setAttribute('marker-end', 'url(#arrow)');
 
@@ -497,10 +572,10 @@
                 loadLine.setAttribute('x1', n.x);
                 loadLine.setAttribute('y1', n.y);
                 loadLine.setAttribute('x2', n.x);
-                loadLine.setAttribute('y2', n.y + 50);
+                loadLine.setAttribute('y2', n.y + 40);
 
-                loadText.setAttribute('x', n.x + -15);
-                loadText.setAttribute('y', n.y + 90);
+                loadText.setAttribute('x', n.x - 30);
+                loadText.setAttribute('y', n.y + 75);
             }
 
             updateExternalLoadPosition();
@@ -612,8 +687,8 @@
                 //console.log(dataView.byteLength);
                 // n = 2^23 * 64 * sensitivity / 1000 = 
                 // n load cell = 2^29  * sensitivity / 1000
-                 //  load = n  * 2450 / (2^29  * 3 / 1000)
-                 //  load = n  * 10000 * 2450 / (2^29  * 30)
+                //  load = n  * 2450 / (2^29  * 3 / 1000)
+                //  load = n  * 10000 * 2450 / (2^29  * 30)
                 if (dataView.byteLength == 36) {
                     const lastWord = dataView.getUint32(32, true);
                     if ((lastWord & 0xFFFF) == 0) {
@@ -639,7 +714,7 @@
                         }
 
                         deviceSerialNo = (lastWord >> 16);
-                        connectBleButton.textContent = connectBleButton.textContent + ' from ' + deviceSerialNo;
+                        connectBleButton.textContent = connectBleButton.textContent + ' SN' + deviceSerialNo;
                     }
                 }
             }

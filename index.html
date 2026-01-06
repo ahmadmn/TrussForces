@@ -330,7 +330,6 @@
     <div class="container" id="main-app-container">
         <div class="top-panel">
             <button id="connect-ble-btn" class="connect-ble-button">Connect</button>
-            <button id="toggle-load-btn" class="connect-ble-button">Toggle Force</button>
             <button id="zero-load-btn" class="connect-ble-button">Zero All</button>
             <button id="toggle-menu-btn" class="toggle-menu-btn">
                 <span>&#9776;</span> Settings
@@ -589,11 +588,6 @@
 
             document.getElementById('truss').appendChild(loadLine);
             document.getElementById('truss').appendChild(loadText);
-
-            document.getElementById('toggle-load-btn').onclick = function () {
-                currentLoadNode = (currentLoadNode === 'E') ? 'C' : 'E';
-                updateExternalLoadPosition();
-            };
             document.getElementById('zero-load-btn').onclick = function () {
                 zeroLoadFlag = true;
             };
@@ -791,3 +785,4 @@
 </body>
 
 </html>
+
